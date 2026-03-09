@@ -5,10 +5,12 @@ import todosFromServer from './api/todos';
 import { Todo, User } from './types/types';
 import { useState } from 'react';
 
-const getTodoWithUser = (todo: Omit<Todo, 'user'>): Todo => {
-  const user = usersFromServer.find((u: User) => u.id === todo.userId) || null;
+const getUserById = (userId: number): User | null => {
+  return usersFromServer.find((user: User) => user.id === userId) || null;
+};
 
-  return { ...todo, user };
+const getTodoWithUser = (todo: Omit<Todo, 'user'>): Todo => {
+  return { ...todo, user: getUserById(todo.userId) };
 };
 
 const initialTodos = todosFromServer.map(getTodoWithUser);
@@ -20,8 +22,8 @@ export const App = () => {
   const [titleError, setTitleError] = useState(false);
   const [userError, setUserError] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
 
     if (!title) {
       setTitleError(true);
@@ -36,11 +38,11 @@ export const App = () => {
     }
 
     const newTodo: Todo = {
-      id: Math.max(...todos.map(t => t.id)) + 1,
+      id: Math.max(...todos.map(todo => todo.id)) + 1,
       title,
       userId,
       completed: false,
-      user: usersFromServer.find(u => u.id === userId) as User,
+      user: getUserById(userId),
     };
 
     setTodos([...todos, newTodo]);
@@ -71,8 +73,8 @@ export const App = () => {
           <select
             data-cy="userSelect"
             value={userId}
-            onChange={e => {
-              setUserId(+e.target.value);
+            onChange={event => {
+              setUserId(+event.target.value);
               setUserError(false);
             }}
           >
